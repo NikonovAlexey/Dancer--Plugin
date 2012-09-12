@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SRCPATH=./lib
+DSTPATH=/home/var/perl5/Dancer/Plugin
+
+cp $SRCPATH/* $DSTPATH -frv
