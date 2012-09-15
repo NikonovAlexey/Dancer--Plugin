@@ -4,3 +4,8 @@ SRCPATH=./lib
 DSTPATH=/home/var/perl5/Dancer/Plugin
 
 cp $SRCPATH/* $DSTPATH -frv
+
+pod2html lib/FAW.pm > faw.html
+pod2html lib/uRBAC.pm > urbac.html
+
+rm pod2htmd.tmp
