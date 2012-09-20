@@ -11,8 +11,6 @@ use FAW::Form;
 use Validate::Tiny qw(validate);
 use Data::Dump qw(dump);
 
-our $VERSION = '0.2';
-
 =encoding utf-8
 
 =cut
@@ -24,6 +22,10 @@ Dancer::Plugin::FAW - Form Advanced Way
 =head1 VERSION
 
 0.2
+
+=cut
+
+our $VERSION = '0.2';
 
 =head1 SYNOPSIS
 
@@ -166,7 +168,7 @@ register fawform => sub {
             # успешно...
             if (!defined($config->{validate}) || ($results->{success} == 1)) {
                 # вызываем предопределённое действие after post
-                &{$config->{after}}("post", \$z) if defined($config->{after});
+                &{$config->{after}}("post", \$faw) if defined($config->{after});
                 redirect $faw->{redirect} || $config->{redirect} || "/";
             } else {
                 # Иначе - формируем шаблон и повторяем при необходимости 

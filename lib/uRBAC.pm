@@ -122,6 +122,16 @@ sub rights {
     return 1; 
 };
 
+=head2 say_if_debug
+
+Для удобства отладки зависимый от флага отладки вывод флага отладки
+
+=cut
+
+sub say_if_debug {
+    if ( config->{plugins}->{uRBAC}->{debug} == 1 ) { warning $_[0]; }
+}
+
 =head2 хук before 
 
 Основной механизм установки прав на основе конфигурации и правил. 
@@ -137,14 +147,23 @@ hook 'before' => sub {
     my $current_role = session->{user}->{roles}  || "guest";
     my $input_method = lc(request->{method})     || "";
     my $input_route  = request->{_route_pattern} || '/';
-
+    
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
     my $route_profile = $conf->{roles}->{$input_route} || "";
     
-    # разделим роли на блоки (более одной)
-    if ($route_profile eq "any") { return $conf->{deny_flag} = 0; };
+    # Проверим указание "любой" роли для обхода детальной проверки.
+    if ($route_profile eq "any") { 
+        say_if_debug(sprintf qq( === GRANT access for any user at %s profile),
+            $input_route);
+        return $conf->{deny_flag} = 0; 
+    };
     
     $conf->{deny_flag} = FAW::uRoles->check_role($current_role, $input_method, $route_profile);
+    
+    say_if_debug(sprintf qq( === try access for '%s' role at %s@%s with status %s),
+        $current_role, $input_route, $input_method, 
+        ( $conf->{deny_flag} == 1 ) ? "DENIED" : "GRANTED"
+    );
 };
 
 =head2 хук before_template_render
