@@ -191,7 +191,6 @@ after нам крайне важно иметь возможность упра�
 
             $faw->map_params(params);
             $results = validate(params, $config->{validate}) if defined($config->{validate}) || 0;
-            &{$config->{before}}("post", \$faw) if defined($config->{before});
             
 =text
 
@@ -209,9 +208,10 @@ after нам крайне важно иметь возможность упра�
 =cut
 
             if (! defined($config->{validate}) || ($results->{success} == 1)) {
-                $results = 1;
-                if ( defined($config->{after}) ) {
-                    $results = &{$config->{after}}("post", \$faw) || 1;
+                $results = 0;
+                if ( defined($config->{before}) ) {
+                    $results = &{$config->{before}}("post", \$faw);
+                    $results ||= 0;
                 }
                 if ($results == 1) {
                     my $z = $config->{redirect} || "/";
@@ -229,7 +229,7 @@ after нам крайне важно иметь возможность упра�
 =cut
 
             $z = template $config->{template}, { form => $faw }, { layout => $config->{layout} };
-            #&{$config->{after}}("post", \$z) if defined($config->{after});
+            &{$config->{after}}("post", \$z) if defined($config->{after});
             return $z;
         };
     };
