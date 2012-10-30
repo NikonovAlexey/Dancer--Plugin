@@ -129,7 +129,8 @@ sub rights {
 =cut
 
 sub say_if_debug {
-    if ( config->{plugins}->{uRBAC}->{debug} == 1 ) { warning $_[0]; }
+    my $debug = config->{plugins}->{uRBAC}->{debug} || 0;
+    if ( $debug == 1 ) { warning $_[0]; }
 }
 
 =head2 хук before 

@@ -153,6 +153,7 @@ FAW::Form.
         get $path => $config->{get};
     } else {
         get $path => sub {
+            $faw->{action} = prefix . $path;
             &{$config->{before}}("get", \$faw) if defined($config->{before});
             $z = template $config->{template}, { form => $faw }, { layout => $config->{layout} };
             &{$config->{after}}("get", \$z) if defined($config->{after});
@@ -220,7 +221,8 @@ after нам крайне важно иметь возможность упра�
                 }
                 if ($results == 1) {
                     my $z = $redirect || $config->{redirect} || "/";
-                    redirect $z;
+                    #redirect $z;
+                    forward $z;
                 }
             }
 
