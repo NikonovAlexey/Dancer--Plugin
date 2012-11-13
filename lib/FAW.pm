@@ -221,8 +221,8 @@ after нам крайне важно иметь возможность упра�
                 }
                 if ($results == 1) {
                     my $z = $redirect || $config->{redirect} || "/";
-                    #redirect $z;
-                    forward $z;
+                    redirect $z;
+                    return;
                 }
             }
 
