@@ -87,7 +87,7 @@ sub fawConvertPath {
     my $t = $_[0];
     $t =~ s/:url/$_[1]/;
     return $t;
-};
+}
 
 =head2 fawform 
 

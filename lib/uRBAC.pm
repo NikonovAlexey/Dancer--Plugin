@@ -5,6 +5,7 @@ use warnings;
 
 use Dancer ':syntax';
 use Dancer::Plugin;
+use Dancer::Plugin::FlashNote;
 
 use FAW::uRoles;
 use Data::Dump qw(dump);
@@ -120,7 +121,7 @@ sub rights {
     };
     
     return 1; 
-};
+}
 
 =head2 say_if_debug
 
@@ -148,6 +149,9 @@ hook 'before' => sub {
     my $current_role = session->{user}->{roles}  || "guest";
     my $input_method = lc(request->{method})     || "";
     my $input_route  = request->{_route_pattern} || '/';
+    my $strong_secure= config->{plugins}->{uRBAC}->{strong_secure} || 0;
+    my $redirect;
+    my $session_lifetime = session->{lifetime}   || time + config->{session_timeout};
     
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
     my $route_profile = $conf->{roles}->{$input_route} || "";
@@ -165,6 +169,38 @@ hook 'before' => sub {
         $current_role, $input_route, $input_method, 
         ( $conf->{deny_flag} == 1 ) ? "DENIED" : "GRANTED"
     );
+    
+    # Заблокируем доступ к содержимому и перенаправим к определённому разделу
+    if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
+        warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
+        $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
+        redirect($redirect);
+    };
+    
+    # Проверим время жизни нашей сессии и выкинем пользователя, если оно было исчерпано
+    warning "long session flag is " . session->{longsession};
+    if ( $current_role ne "guest" ) {
+        if ( session->{longsession} eq "1" ) {
+            warning "don't modify session time - long session";
+        } elsif ( $session_lifetime > time ) {
+            session lifetime => time + config->{session_timeout};
+        } else {
+            warning "session timeout";
+            flash "Вы слишком долго не выполняли никаких действий, поэтому <strong>в целях
+            безопасности</strong> система произвела автоматическое завершение сеанса. Но Вы
+            можете в любой момент повторно зайти в систему.";
+            session user => {
+                id  => "",
+                fullname => "",
+                roles => "guest",
+                login => "",
+                email => "",
+                phone => "",
+                status => "",
+            };
+            redirect("/user/login");
+        }
+    }
 };
 
 =head2 хук before_template_render
@@ -180,12 +216,6 @@ hook 'before_template_render' => sub {
     $values->{deny_flag}        = $conf->{deny_flag};
     $values->{deny_template}    = $conf->{deny_template} || 'components/defdeny.tt';
     $values->{rights}           = \&rights;
-
-    #if ($conf->{deny_flag} != 0) {
-    #    warning " ::::::::::::: ========== ::::::::::: status: access denied";
-    #} else {
-    #    warning " ::::::::::::: ========== ::::::::::: status: access granted";
-    #};
 };
 
 =head2 rights
