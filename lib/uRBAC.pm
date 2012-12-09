@@ -5,12 +5,14 @@ use warnings;
 
 use Dancer ':syntax';
 use Dancer::Plugin;
+use Dancer::Plugin::DBIC;
 use Dancer::Plugin::FlashNote;
 
 use FAW::uRoles;
 use Data::Dump qw(dump);
+use POSIX 'strftime';
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 my $conf = plugin_setting;
 
@@ -134,6 +136,36 @@ sub say_if_debug {
     if ( $debug == 1 ) { warning $_[0]; }
 }
 
+=head2 history
+
+Запись истории посещения в лог. Если указан комментарий, то пишем историю не в
+лог, а в таблицу БД.
+
+=cut
+
+sub history {
+    my $uid = session->{user}->{id} || "guest";
+    my $timestamp = strftime('%Y.%m.%D %H:%M:%S', localtime(time));
+    my $action = request->{env}->{'PATH_INFO'};
+    my $method = request->{env}->{'REQUEST_METHOD'};
+    my $addr = request->{env}->{'REMOTE_ADDR'};
+    my $agent = request->{headers}->{'user-agent'};
+    my $notes = join(',', @_);
+
+    if ( $notes ) {
+        schema->resultset('History')->create({
+            userid => $uid,
+            method => $method,
+            action => $action,
+            address=> $addr,
+            agent  => $agent,
+            notes  => $notes,
+        });
+    } else {
+        warning " [$timestamp] uid $uid $method $action from $addr";
+    };
+}
+
 =head2 хук before 
 
 Основной механизм установки прав на основе конфигурации и правил. 
@@ -146,42 +178,46 @@ sub say_if_debug {
 =cut
 
 hook 'before' => sub {
+    my $timestamp = strftime('%Y.%m.%D %H:%M:%S', localtime(time));
     my $current_role = session->{user}->{roles}  || "guest";
     my $input_method = lc(request->{method})     || "";
     my $input_route  = request->{_route_pattern} || '/';
     my $strong_secure= config->{plugins}->{uRBAC}->{strong_secure} || 0;
     my $redirect;
     my $session_lifetime = session->{lifetime}   || time + config->{session_timeout};
+    my $long_session_flag = session->{longsession} || 0;
     
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
     my $route_profile = $conf->{roles}->{$input_route} || "";
+    history();
     
     # Проверим указание "любой" роли для обхода детальной проверки.
     if ($route_profile eq "any") { 
-        say_if_debug(sprintf qq( === GRANT access for any user at %s profile),
-            $input_route);
+        say_if_debug(sprintf qq( [%s] GRANT for any user at %s),
+            $timestamp, $input_route 
+        );
         return $conf->{deny_flag} = 0; 
     };
     
     $conf->{deny_flag} = FAW::uRoles->check_role($current_role, $input_method, $route_profile);
     
-    say_if_debug(sprintf qq( === try access for '%s' role at %s@%s with status %s),
-        $current_role, $input_route, $input_method, 
-        ( $conf->{deny_flag} == 1 ) ? "DENIED" : "GRANTED"
+    say_if_debug(sprintf qq( [%s] %s role '%s' at %s),
+        $timestamp, ( $conf->{deny_flag} == 1 ) ? "DENY" : "GRANT",
+        $current_role, $input_route
     );
     
     # Заблокируем доступ к содержимому и перенаправим к определённому разделу
     if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
         warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
         $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
-        redirect($redirect);
+        forward($redirect);
     };
     
     # Проверим время жизни нашей сессии и выкинем пользователя, если оно было исчерпано
-    warning "long session flag is " . session->{longsession};
+    #warning "long session flag is " . $long_session_flag;
     if ( $current_role ne "guest" ) {
         if ( session->{longsession} eq "1" ) {
-            warning "don't modify session time - long session";
+            #warning "don't modify session time - long session";
         } elsif ( $session_lifetime > time ) {
             session lifetime => time + config->{session_timeout};
         } else {
@@ -234,6 +270,8 @@ hook 'before_template_render' => sub {
 =cut 
 
 register 'rights' => \&rights;
+
+register history        => \&history;
 
 =head2 access_status
 
