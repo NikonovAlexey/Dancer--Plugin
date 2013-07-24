@@ -124,7 +124,6 @@ register fawform => sub {
 
     $config->{layout} ||= config->{layout};
     $config->{action} = prefix . $path;
-
     my $faw = FAW::Form->new($config);
     
 =text

@@ -148,10 +148,10 @@ sub history {
     my $timestamp = strftime('%Y.%m.%D %H:%M:%S', localtime(time));
     my $action = request->{env}->{'PATH_INFO'};
     my $method = request->{env}->{'REQUEST_METHOD'};
-    my $addr = request->{env}->{'REMOTE_ADDR'};
+    my $addr = request->{env}->{'REMOTE_ADDR'} || "127.0.0.1";
     my $agent = request->{headers}->{'user-agent'};
     my $notes = join(',', @_);
-
+    
     if ( $notes ) {
         schema->resultset('History')->create({
             userid => $uid,
@@ -162,7 +162,7 @@ sub history {
             notes  => $notes,
         });
     } else {
-        warning " [$timestamp] uid $uid $method $action from $addr";
+        say_if_debug(" [$timestamp] uid $uid $method $action from $addr");
     };
 }
 
@@ -184,7 +184,7 @@ hook 'before' => sub {
     my $input_route  = request->{_route_pattern} || '/';
     my $strong_secure= config->{plugins}->{uRBAC}->{strong_secure} || 0;
     my $redirect;
-    my $session_lifetime = session->{lifetime}   || time + config->{session_timeout};
+    my $session_lifetime = session->{lifetime} || time + config->{session_timeout};
     my $long_session_flag = session->{longsession} || 0;
     
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
@@ -208,16 +208,16 @@ hook 'before' => sub {
     
     # Заблокируем доступ к содержимому и перенаправим к определённому разделу
     if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
-        warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
         $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
-        forward($redirect);
+        warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
+        redirect($redirect);
+        return;
     };
     
     # Проверим время жизни нашей сессии и выкинем пользователя, если оно было исчерпано
-    #warning "long session flag is " . $long_session_flag;
     if ( $current_role ne "guest" ) {
-        if ( session->{longsession} eq "1" ) {
-            #warning "don't modify session time - long session";
+        if ( $long_session_flag eq "1" ) {
+            warning "don't modify session time - long session";
         } elsif ( $session_lifetime > time ) {
             session lifetime => time + config->{session_timeout};
         } else {
