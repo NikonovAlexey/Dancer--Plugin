@@ -10,6 +10,8 @@ use Dancer::Plugin::FlashNote;
 
 use FAW::uRoles;
 use Data::Dump qw(dump);
+use FindBin qw($Bin);
+use Try::Tiny;
 use POSIX 'strftime';
 
 our $VERSION = '0.3';
@@ -125,9 +127,43 @@ sub rights {
     return 1; 
 }
 
+=head2 template_process 
+
+Отрисовать в вывод шаблон Template Toolkit с параметрами, указанными на входе.
+
+На входе обязательно указать:
+- имя шаблона, который станем отрисовывать;
+- набор дополнительных параметров шаблона;
+
+На выходе получить (и встроить) результат отрисовки шаблона;
+
+=cut
+
+sub template_process {
+    my $engine_name = shift;
+    my $params      = shift || { params => "none" };
+    my $result;
+    my $place_path  = config->{engines}->{template_toolkit}->{path}
+                        || '/../views/components/';
+    my $encode      = config->{engines}->{template_toolkit}->{encoding}
+                        || "utf8";
+
+try {
+    my $engine = Template->new({
+        INCLUDE_PATH    => "${Bin}${place_path}",
+        ENCODING        => $encode,
+    });
+    $engine->process($engine_name, $params, \$result);
+} catch {
+    $result = "";
+};
+    
+    return '<!-- proctemp -->' . $result;
+}
+
 =head2 say_if_debug
 
-Для удобства отладки зависимый от флага отладки вывод флага отладки
+Сказанную на входе фразу выведем на консоль только при взведённом флаге отладки.
 
 =cut
 
@@ -269,9 +305,9 @@ hook 'before_template_render' => sub {
 
 =cut 
 
-register 'rights' => \&rights;
-
+register 'rights'       => \&rights;
 register history        => \&history;
+register template_process => \&template_process;
 
 =head2 access_status
 
