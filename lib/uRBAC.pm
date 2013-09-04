@@ -14,7 +14,7 @@ use FindBin qw($Bin);
 use Try::Tiny;
 use POSIX 'strftime';
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 my $conf = plugin_setting;
 
@@ -148,17 +148,17 @@ sub template_process {
     my $encode      = config->{engines}->{template_toolkit}->{encoding}
                         || "utf8";
 
-try {
-    my $engine = Template->new({
-        INCLUDE_PATH    => "${Bin}${place_path}",
-        ENCODING        => $encode,
-    });
-    $engine->process($engine_name, $params, \$result);
-} catch {
-    $result = "";
-};
+    try {
+        my $engine = Template->new({
+            INCLUDE_PATH    => "${Bin}${place_path}",
+            ENCODING        => $encode,
+        });
+        $engine->process($engine_name, $params, \$result);
+    } catch {
+        $result = "";
+    };
     
-    return '<!-- proctemp -->' . $result;
+    return $result;
 }
 
 =head2 say_if_debug
