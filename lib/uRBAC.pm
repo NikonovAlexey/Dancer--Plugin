@@ -18,6 +18,16 @@ our $VERSION = '0.4';
 
 my $conf = plugin_setting;
 
+sub halt_session {
+    session user => {
+        id      => "",
+        login => "",
+        roles => "guest",
+        email => "",
+        fullname => "guest",
+    };
+};
+
 =encoding utf-8
 
 =cut
@@ -127,40 +137,6 @@ sub rights {
     return 1; 
 }
 
-=head2 template_process 
-
-Отрисовать в вывод шаблон Template Toolkit с параметрами, указанными на входе.
-
-На входе обязательно указать:
-- имя шаблона, который станем отрисовывать;
-- набор дополнительных параметров шаблона;
-
-На выходе получить (и встроить) результат отрисовки шаблона;
-
-=cut
-
-sub template_process {
-    my $engine_name = shift;
-    my $params      = shift || { params => "none" };
-    my $result;
-    my $place_path  = config->{engines}->{template_toolkit}->{path}
-                        || '/../views/components/';
-    my $encode      = config->{engines}->{template_toolkit}->{encoding}
-                        || "utf8";
-
-    try {
-        my $engine = Template->new({
-            INCLUDE_PATH    => "${Bin}${place_path}",
-            ENCODING        => $encode,
-        });
-        $engine->process($engine_name, $params, \$result);
-    } catch {
-        $result = "";
-    };
-    
-    return $result;
-}
-
 =head2 say_if_debug
 
 Сказанную на входе фразу выведем на консоль только при взведённом флаге отладки.
@@ -261,17 +237,11 @@ hook 'before' => sub {
             flash "Вы слишком долго не выполняли никаких действий, поэтому <strong>в целях
             безопасности</strong> система произвела автоматическое завершение сеанса. Но Вы
             можете в любой момент повторно зайти в систему.";
-            session user => {
-                id  => "",
-                fullname => "",
-                roles => "guest",
-                login => "",
-                email => "",
-                phone => "",
-                status => "",
-            };
+            halt_session;
             redirect("/user/login");
         }
+    } else {
+        halt_session;
     }
 };
 
@@ -307,7 +277,6 @@ hook 'before_template_render' => sub {
 
 register 'rights'       => \&rights;
 register history        => \&history;
-register template_process => \&template_process;
 
 =head2 access_status
 
