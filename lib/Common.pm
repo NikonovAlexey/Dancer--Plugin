@@ -5,6 +5,8 @@ use warnings;
 
 use Dancer ':syntax';
 use Dancer::Plugin;
+use Dancer::Plugin::ImageWork;
+use Dancer::Plugin::DBIC;
 
 use FAW::uRoles;
 use Data::Dump qw(dump);
