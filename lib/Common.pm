@@ -125,6 +125,11 @@ sub parsepage {
     return $text;
 }
 
+hook before_template_render => sub {
+    my ($values) = @_;
+    $values->{common}             = config->{plugins}->{Common} || "";
+};
+
 register template_process   => \&template_process;
 register transliterate      => \&transliterate;
 

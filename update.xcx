@@ -8,4 +8,4 @@ cp $SRCPATH/* $DSTPATH -frv
 pod2html lib/FAW.pm > faw.html
 pod2html lib/uRBAC.pm > urbac.html
 
-rm pod2htmd.tmp
+rm pod2htm?.tmp
