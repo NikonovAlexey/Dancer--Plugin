@@ -5,10 +5,13 @@ DSTPATH=/home/var/perl5/Dancer/Plugin
 
 cp $SRCPATH/* $DSTPATH -frv
 
-pod2html lib/FAW.pm > faw.html
-pod2html lib/uRBAC.pm > urbac.html
+for FILEL in lib/*.pm; do
+    echo $FILEL $FILEL.html
+    pod2html $FILEL > $FILEL.html 
+done
 
 rm pod2htm?.tmp
+mv lib/*.pm.html ./man
 
 git add .
 gitk &
