@@ -3,16 +3,19 @@
 SRCPATH=./lib
 DSTPATH=/home/var/perl5/Dancer/Plugin
 
+# Общий принцип работы:
+# - обновить модули в общей папке;
+# - сгенерировать документацию;
+# - обновить дерево проекта;
+
 cp $SRCPATH/* $DSTPATH -frv
 
 for FILEL in lib/*.pm; do
     echo $FILEL $FILEL.html
     pod2html $FILEL > $FILEL.html 
 done
-
-rm pod2htm?.tmp
 mv lib/*.pm.html ./man
+rm pod2htm?.tmp
 
 git add .
 gitk &
-
