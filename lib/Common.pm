@@ -7,6 +7,7 @@ use Dancer ':syntax';
 use Dancer::Plugin;
 use Dancer::Plugin::ImageWork;
 use Dancer::Plugin::DBIC;
+use Dancer::Plugin::FlashNote;
 
 use FAW::uRoles;
 use Data::Dump qw(dump);
@@ -48,6 +49,36 @@ sub template_process {
     } catch {
         $result = " $place_path template is wrong ";
     };
+    
+    return $result;
+}
+
+=head2 message_process
+
+Служит для отрисовки сообщения по шаблону.
+
+=cut
+
+sub message {
+    my $message_id      = shift;
+    my $message_params  = shift || { params => "none" };
+    my $result      = "";
+    my $place_path  = '/../views/messages/';
+    my $encode      = config->{engines}->{template_toolkit}->{encoding}
+                        || "utf8";
+
+    try {
+        my $engine = Template->new({
+            INCLUDE_PATH    => "${Bin}${place_path}",
+            ENCODING        => $encode,
+        });
+        $engine->process($engine_name, $message_params, \$result);
+    } catch {
+        $result = " message id $message_id is absend ";
+    };
+
+    if ( $message_params->{flash} ) { flash $result; }
+    if ( $message_params->{log} ) { warning " ======= message $message_id "; }
     
     return $result;
 }
