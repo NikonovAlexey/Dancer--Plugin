@@ -251,10 +251,6 @@ hook 'before' => sub {
 текущее состояние флага запрещения, адрес шаблона с текстом запрещения и ссылку
 на процедуру прав доступа.
 
-Кроме того, особую ветку конфигурации мы передаём в шаблон "как есть", для
-того, чтобы можно было прописать общие настройки в единой точке и потом их
-использовать в шаблонизации.
-
 =cut
 
 hook 'before_template_render' => sub {
@@ -262,7 +258,6 @@ hook 'before_template_render' => sub {
     $values->{deny_flag}        = $conf->{deny_flag};
     $values->{deny_template}    = $conf->{deny_template} || 'components/defdeny.tt';
     $values->{rights}           = \&rights;
-    $values->{site}             = config->{site} || "";
 };
 
 =head2 rights
