@@ -59,26 +59,28 @@ sub template_process {
 
 =cut
 
-sub message {
+sub message_process {
     my $message_id      = shift;
     my $message_params  = shift || { params => "none" };
     my $result      = "";
     my $place_path  = '/../views/messages/';
     my $encode      = config->{engines}->{template_toolkit}->{encoding}
                         || "utf8";
+    
+    if ( -f "${Bin}${place_path}${message_id}" ) {
+        try {
+            my $engine = Template->new({
+                INCLUDE_PATH    => "${Bin}${place_path}",
+                ENCODING        => $encode,
+            });
+            $engine->process($message_id, $message_params, \$result);
+        } catch {
+            $result = "message id $message_id is absend";
+        };
+    } else { $result = "Message file $message_id is absend."; }
 
-    try {
-        my $engine = Template->new({
-            INCLUDE_PATH    => "${Bin}${place_path}",
-            ENCODING        => $encode,
-        });
-        $engine->process($engine_name, $message_params, \$result);
-    } catch {
-        $result = " message id $message_id is absend ";
-    };
-
-    if ( $message_params->{flash} ) { flash $result; }
-    if ( $message_params->{log} ) { warning " ======= message $message_id "; }
+    if ( $message_params->{flash} ) { flash $result;  }
+    if ( $message_params->{log} ) { warning " ======= message $message_id"; }
     
     return $result;
 }
@@ -162,6 +164,7 @@ hook before_template_render => sub {
 };
 
 register template_process   => \&template_process;
+register message_process    => \&message_process;
 register transliterate      => \&transliterate;
 
 register parsepage          => \&parsepage;
