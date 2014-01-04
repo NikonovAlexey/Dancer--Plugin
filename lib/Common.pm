@@ -14,7 +14,7 @@ use FindBin qw($Bin);
 use Try::Tiny;
 use POSIX 'strftime';
 
-our $VERSION = '0.1';
+our $VERSION = '0.3';
 
 my $conf = plugin_setting;
 
