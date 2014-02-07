@@ -145,12 +145,33 @@ sub img_by_num_lb {
     };
     
     return "$src$id" if $file eq "";
-    return "<a href='" . img_convert_name($file, "orig") . "' rel='lightbox'><img internalid='$id' src='" . img_convert_name($file, $suff) . "'></a>";
+    return "<a href='" . img_convert_name($file, $suff) . "' rel='lightbox'><img internalid='$id' src='" . img_convert_name($file, "small") . "'></a>";
 }
 
 sub link_to_text {
     my ( $src, $link ) = @_;
     return "<a href='/page/$link'>$link</a>";
+}
+
+sub doc_by_num {
+    my ( $src, $id ) = @_;
+    my $doc;
+    my $file = "";
+    my $docname = "";
+    
+    if ( ! defined($id) ) { return "$src$id" };
+    try {
+        $doc    = schema->resultset('Document')->find({ id => $id }) || 0;
+        $file   = $doc->filename || "";
+        $docname= $doc->remark || "";
+    } catch {
+        return "$src$id";
+    };
+
+    $docname ||= $file;
+    
+    return "$src$id" if $file eq "";
+    return "<a href='$file' target='_blank'>$docname</a>";
 }
 
 sub parsepage {
@@ -159,6 +180,7 @@ sub parsepage {
     $text =~ s/(img\s*=\s*)(\d*)/&img_by_num($1,$2)/egm;
     $text =~ s/(imglb\s*=\s*)(\w*)/&img_by_num_lb($1,$2)/egm;
     $text =~ s/(link\s*=\s*)(\w*)/&link_to_text($1,$2)/egm;
+    $text =~ s/(doc\s*=\s*)(\d*)/&doc_by_num($1,$2)/egm;
     return $text;
 }
 
