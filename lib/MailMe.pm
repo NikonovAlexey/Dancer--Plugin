@@ -28,8 +28,8 @@ my $conf = plugin_setting;
 sub send {
     my ( $recipient, $subject, $template, $template_data ) = @_;
     my $doup = config->{plugins}->{Email}->{techdir};
-    my $recipient = config->{plugins}->{MailMe}->{alias}->{$recipient} ? config->{plugins}->{MailMe}->{alias}->{$recipient} : $recipient;
     my $message = template_process($template, $template_data);
+    $recipient = config->{plugins}->{MailMe}->{alias}->{$recipient} ? config->{plugins}->{MailMe}->{alias}->{$recipient} : $recipient;
     
     try {
         my $status = email {
