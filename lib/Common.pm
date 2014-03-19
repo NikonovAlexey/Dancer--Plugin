@@ -108,11 +108,27 @@ sub transliterate {
     );
     pop @{([ \map do{$str =~ s|[$_]|$hs{$_}|gi; }, keys %hs ])}, $str;
     
+    return $str;
+}
+
+=head2 filtrate
+
+Фильтрует ненужные спецсимволы в именах. Дополняет процедуру transliterate для
+автоматического преобразования имени статьи.
+
+=cut
+
+sub filtrate {
+    my $str = shift;
+    
     $str =~ s/  / /g;
-    $str =~ s/^ *//g;
-    $str =~ s/ *$//g;
-    $str =~ s/\W*/_/g;
+    $str =~ s/^ *//;
+    $str =~ s/ *$//;
+     
+    $str =~ s/\W+/_/g;
     $str =~ s/__/_/g;
+    $str =~ s/^_*//;
+    $str =~ s/_*$//;
     
     return $str;
 }
@@ -199,6 +215,7 @@ hook before_template_render => sub {
 register template_process   => \&template_process;
 register message_process    => \&message_process;
 register transliterate      => \&transliterate;
+register filtrate           => \&filtrate;
 
 register parsepage          => \&parsepage;
 
