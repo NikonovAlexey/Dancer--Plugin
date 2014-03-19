@@ -107,6 +107,13 @@ sub transliterate {
         'эЭ'=>'eh', 'юЮ'=>'ju', 'яЯ'=>'ja', ' '=>'_',
     );
     pop @{([ \map do{$str =~ s|[$_]|$hs{$_}|gi; }, keys %hs ])}, $str;
+    
+    $str =~ s/  / /g;
+    $str =~ s/^ *//g;
+    $str =~ s/ *$//g;
+    $str =~ s/\W*/_/g;
+    $str =~ s/__/_/g;
+    
     return $str;
 }
 

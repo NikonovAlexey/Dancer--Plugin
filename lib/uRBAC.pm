@@ -222,7 +222,7 @@ hook 'before' => sub {
     if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
         $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
         warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
-        redirect($redirect);
+        redirect($redirect . "?redir=" . $input_route);
         return;
     };
     
