@@ -14,8 +14,10 @@ for FILEL in lib/*.pm; do
     echo $FILEL $FILEL.html
     pod2html $FILEL > $FILEL.html 
 done
+
 mv lib/*.pm.html ./man
 rm pod2htm?.tmp
 
 git add .
 gitk &
+git commit -a
