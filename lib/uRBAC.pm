@@ -203,6 +203,12 @@ hook 'before' => sub {
     my $route_profile = $conf->{roles}->{$input_route} || "";
     history();
     
+    # Проверим текущую роль в сессии. Если она не определена, то сбросить
+    # сессию на дефолт.
+    if ( ! defined(session->{user}->{roles}) || (session->{user}->{roles} =~ /^\s*$/ ) ) {
+        halt_session;
+    }
+    
     # Проверим указание "любой" роли для обхода детальной проверки.
     if ($route_profile eq "any") { 
         say_if_debug(sprintf qq( [%s] GRANT for any user at %s),
@@ -238,7 +244,8 @@ hook 'before' => sub {
             безопасности</strong> система произвела автоматическое завершение сеанса. Но Вы
             можете в любой момент повторно зайти в систему.";
             halt_session;
-            redirect("/user/login");
+            redirect($redirect . "?redir=" . $input_route);
+            #redirect("/user/login");
         }
     } else {
         halt_session;
