@@ -198,6 +198,7 @@ hook 'before' => sub {
     my $redirect;
     my $session_lifetime = session->{lifetime} || time + config->{session_timeout};
     my $long_session_flag = session->{longsession} || 0;
+    my $action = request->{env}->{'PATH_INFO'};
     
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
     my $route_profile = $conf->{roles}->{$input_route} || "";
@@ -228,7 +229,7 @@ hook 'before' => sub {
     if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
         $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
         warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
-        redirect($redirect . "?redir=" . $input_route);
+        redirect($redirect . "?redir=" . $action);
         return;
     };
     
@@ -244,8 +245,7 @@ hook 'before' => sub {
             безопасности</strong> система произвела автоматическое завершение сеанса. Но Вы
             можете в любой момент повторно зайти в систему.";
             halt_session;
-            redirect($redirect . "?redir=" . $input_route);
-            #redirect("/user/login");
+            redirect($redirect . "?redir=" . $action);
         }
     } else {
         halt_session;
