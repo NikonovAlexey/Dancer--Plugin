@@ -141,8 +141,8 @@ redirect = точка перенаправления. Задаёт путь, п�
 
 =cut
 
-    $config->{action} = prefix . $path;
-    $config->{layout} = $config->{layout} || config->{plugins}->{FawForm}->{layout} || config->{layout} || "";
+    $config->{action}   = $path;
+    $config->{layout}   = $config->{layout} || config->{plugins}->{FawForm}->{layout} || config->{layout} || "";
     $config->{template} = $config->{template} || config->{plugins}->{FawForm}->{template};
     $config->{redirect} = $config->{redirect} || config->{plugins}->{FawForm}->{redirect} || "\\";
     my $faw = FAW::Form->new($config);
