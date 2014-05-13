@@ -174,7 +174,7 @@ sub history {
             notes  => $notes,
         });
     } else {
-        say_if_debug(" [$timestamp] uid $uid $method $action from $addr");
+        say_if_debug(" [$timestamp] uid #$uid $method $action from $addr");
     };
 }
 
@@ -218,6 +218,8 @@ hook 'before' => sub {
         return $conf->{deny_flag} = 0; 
     };
     
+    # TODO: в некоторых случаях возвращается некорректный код. Следует отладить
+    # проверку прав и прикрутить корректное значение обработки проверки прав.
     $conf->{deny_flag} = FAW::uRoles->check_role($current_role, $input_method, $route_profile);
     
     say_if_debug(sprintf qq( [%s] %s role '%s' at %s),
