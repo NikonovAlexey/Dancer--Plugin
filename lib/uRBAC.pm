@@ -157,7 +157,7 @@ sub say_if_debug {
 
 sub history {
     my $uid = session->{user}->{id} || "guest";
-    my $timestamp = strftime('%Y.%m.%D %H:%M:%S', localtime(time));
+    my $timestamp = strftime('%Y.%m.%d %H:%M:%S', localtime(time));
     my $action = request->{env}->{'PATH_INFO'};
     my $method = request->{env}->{'REQUEST_METHOD'};
     my $addr = request->{env}->{'REMOTE_ADDR'} || "127.0.0.1";
@@ -190,7 +190,7 @@ sub history {
 =cut
 
 hook 'before' => sub {
-    my $timestamp = strftime('%Y.%m.%D %H:%M:%S', localtime(time));
+    my $timestamp = strftime('%Y.%m.%d %H:%M:%S', localtime(time));
     my $current_role = session->{user}->{roles}  || "guest";
     my $input_method = lc(request->{method})     || "";
     my $input_route  = request->{_route_pattern} || '/';
