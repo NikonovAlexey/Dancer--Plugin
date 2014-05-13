@@ -18,6 +18,8 @@ done
 mv lib/*.pm.html ./man
 rm pod2htm?.tmp
 
+#exit
+
 git add .
 gitk &
 git commit -a

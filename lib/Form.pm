@@ -17,9 +17,7 @@ use Try::Tiny;
 use POSIX 'strftime';
 
 sub foobar {
-    my $item
-    warning " ============ $item";
-    #$engine->render('');
+    my $form = shift;
 }
 
 =text

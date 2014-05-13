@@ -4,6 +4,9 @@ use strict;
 use warnings;
 
 use Dancer ':syntax';
+
+use Dancer::Engine;
+
 use Dancer::Plugin;
 use Dancer::Plugin::ImageWork;
 use Dancer::Plugin::DBIC;
@@ -32,22 +35,21 @@ my $conf = plugin_setting;
 =cut
 
 sub template_process {
-    my $engine_name = shift;
+    my $template    = shift;
     my $params      = shift || { params => "none" };
-    my $result      = "";
-    my $place_path  = config->{engines}->{template_toolkit}->{path}
-                        || '/../views/components/';
-    my $encode      = config->{engines}->{template_toolkit}->{encoding}
-                        || "utf8";
-
+    my $engine      = engine 'Template';
+    my ( $tmpl, $result );
+    
+    $tmpl = $engine->view($template);
+    if ( ! defined($tmpl) ) {
+        return "can't process $template file: is absend";
+    };
+    
     try {
-        my $engine = Template->new({
-            INCLUDE_PATH    => "${Bin}${place_path}",
-            ENCODING        => $encode,
-        });
-        $engine->process($engine_name, $params, \$result);
+        $result = $engine->render($tmpl, $params);
     } catch {
-        $result = " $place_path template is wrong ";
+        $result = "can't process $template file: is broken";
+        warning " === can't process $template file: is broken";
     };
     
     return $result;
@@ -84,7 +86,7 @@ sub message_process {
     } else { $result = "Message file $message_id is absend."; }
 
     if ( $message_params->{flash} ) { flash $result;  }
-    if ( $message_params->{log} ) { warning " ======= message $message_id"; }
+    if ( $message_params->{log} ) { warning " === message $message_id"; }
     
     return $result;
 }
