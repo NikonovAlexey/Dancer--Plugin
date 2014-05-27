@@ -105,6 +105,17 @@ sub message_process {
     return $result;
 }
 
+=head2 asset
+
+Разворачивает имя в полный путь в папке assets/project. Вторым аргументом можно указать тип.
+
+=cut
+
+sub assets {
+    return template_process("blocks/assets.tt", { list => \@_ });
+}
+
+
 =head2 transliterate
 
 Транслитерация русской строки в английскую раскладку согласно ГОСТ.
@@ -149,7 +160,10 @@ sub filtrate {
     return $str;
 }
 
+
 =head1 Parsing pages
+
+Набор процедур парсинга страничек
 
 =cut
 
@@ -223,9 +237,11 @@ sub parsepage {
     return $text;
 }
 
+
 hook before_template_render => sub {
     my ($values) = @_;
-    $values->{common}             = config->{plugins}->{Common} || "";
+    $values->{common} = config->{plugins}->{Common} || "";
+    $values->{assets} = \&assets;
 };
 
 register template_process   => \&template_process;

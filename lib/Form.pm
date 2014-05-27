@@ -20,9 +20,17 @@ sub foobar {
     my $form = shift;
 }
 
+hook 'before_template_render' => sub {
+    my ($values) = @_;
+};
+
 =text
 
 Регистрация процедур плагина
+
+Процедура form:
+1) указать шаблон формы для вывода;
+2) указать таблицу-источник для вывода;
 
 =cut
 
