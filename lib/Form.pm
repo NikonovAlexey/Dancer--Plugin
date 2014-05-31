@@ -10,7 +10,6 @@ use Dancer::Plugin::Common;
 
 use Dancer::Engine;
 
-use FAW::uRoles;
 use Data::Dump qw(dump);
 use FindBin qw($Bin);
 use Try::Tiny;

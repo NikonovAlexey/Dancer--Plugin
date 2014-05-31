@@ -16,7 +16,6 @@ use POSIX 'strftime';
 
 our $VERSION = '0.3';
 
-my $conf = plugin_setting;
 
 =head2 send
 

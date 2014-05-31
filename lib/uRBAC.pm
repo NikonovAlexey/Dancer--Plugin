@@ -190,18 +190,22 @@ sub history {
 =cut
 
 hook 'before' => sub {
-    my $timestamp = strftime('%Y.%m.%d %H:%M:%S', localtime(time));
-    my $current_role = session->{user}->{roles}  || "guest";
-    my $input_method = lc(request->{method})     || "";
-    my $input_route  = request->{_route_pattern} || '/';
-    my $strong_secure= config->{plugins}->{uRBAC}->{strong_secure} || 0;
-    my $redirect;
-    my $session_lifetime = session->{lifetime} || time + config->{session_timeout};
-    my $long_session_flag = session->{longsession} || 0;
-    my $action = request->{env}->{'PATH_INFO'};
+    my $current_role  = session->{user}->{roles}  || "guest";
+    my $query_method  = lc(request->{method})     || "";
+    my $route_pattern = request->{_route_pattern} || '/';
     
+    my $strong_secure       = $conf->{strong_secure} || 0;
+    my $session_timeout     = $conf->{session_timeout} || 600;
+    my $session_lifetime    = session->{lifetime} || time + $session_timeout;
+    my $long_session_flag   = session->{longsession} || 0;
+    
+    my $timestamp   = strftime('%Y.%m.%d %H:%M:%S', localtime(time));
+    my $action      = request->{'path_info'};
+    my $redirect;
+    
+    my $route_profile  = $conf->{roles}->{$route_pattern} || "";
     $conf->{deny_flag} = $conf->{deny_defaults} || 1;
-    my $route_profile = $conf->{roles}->{$input_route} || "";
+    
     history();
     
     # Проверим текущую роль в сессии. Если она не определена, то сбросить
@@ -211,24 +215,24 @@ hook 'before' => sub {
     }
     
     # Проверим указание "любой" роли для обхода детальной проверки.
-    if ($route_profile eq "any") { 
+    if ($route_profile =~ /any|all/i ) { 
         say_if_debug(sprintf qq( [%s] GRANT for any user at %s),
-            $timestamp, $input_route 
+            $timestamp, $route_pattern 
         );
         return $conf->{deny_flag} = 0; 
     };
     
     # TODO: в некоторых случаях возвращается некорректный код. Следует отладить
     # проверку прав и прикрутить корректное значение обработки проверки прав.
-    $conf->{deny_flag} = FAW::uRoles->check_role($current_role, $input_method, $route_profile);
+    $conf->{deny_flag} = FAW::uRoles->check_role($current_role, $query_method, $route_profile);
     
     say_if_debug(sprintf qq( [%s] %s role '%s' at %s),
-        $timestamp, ( $conf->{deny_flag} == 1 ) ? "DENY" : "GRANT",
-        $current_role, $input_route
+        $timestamp, ( $conf->{deny_flag} > 0 ) ? "DENY or WRONG rights" : "GRANT",
+        $current_role, $route_pattern
     );
     
     # Заблокируем доступ к содержимому и перенаправим к определённому разделу
-    if ( ( $strong_secure ) && ( $conf->{deny_flag} == 1 ) ) {
+    if ( ( $strong_secure ) && ( $conf->{deny_flag} > 0 ) ) {
         $redirect     = config->{plugins}->{uRBAC}->{deny_page} || "/deny";
         warning "Try to lock action for user: strong secure is enabled; redirect to $redirect page";
         redirect($redirect . "?redir=" . $action);
@@ -240,7 +244,7 @@ hook 'before' => sub {
         if ( $long_session_flag eq "1" ) {
             warning "don't modify session time - long session";
         } elsif ( $session_lifetime > time ) {
-            session lifetime => time + config->{session_timeout};
+            session lifetime => time + $session_timeout;
         } else {
             warning "session timeout";
             flash "Вы слишком долго не выполняли никаких действий, поэтому <strong>в целях

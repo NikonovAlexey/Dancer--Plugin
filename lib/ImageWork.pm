@@ -20,8 +20,6 @@ use File::Basename qw(fileparse);
 
 our $VERSION = '0.3';
 
-my $conf = plugin_setting;
-
 =head1 Общие процедуры
 
 Процедуры, которые управляют изображениями решено вынести в отдельный модуль
