@@ -56,6 +56,7 @@ sub template_process {
     $params->{rights} = \&rights;
     $tmpl = $engine->view($template);
     if ( ! defined($tmpl) ) {
+        warning " === can't process $template file: is absend";
         return "can't process $template file: is absend";
     };
     

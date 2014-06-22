@@ -191,12 +191,12 @@ sub history {
 
 hook 'before' => sub {
     my $current_role  = session->{user}->{roles}  || "guest";
-    my $query_method  = lc(request->{method})     || "";
+    my $query_method  = lc(request->{method})     || "get";
     my $route_pattern = request->{_route_pattern} || '/';
     
     my $strong_secure       = $conf->{strong_secure} || 0;
     my $session_timeout     = $conf->{session_timeout} || 600;
-    my $session_lifetime    = session->{lifetime} || time + $session_timeout;
+    my $session_lifetime    = session->{lifetime}    || time + $session_timeout;
     my $long_session_flag   = session->{longsession} || 0;
     
     my $timestamp   = strftime('%Y.%m.%d %H:%M:%S', localtime(time));
