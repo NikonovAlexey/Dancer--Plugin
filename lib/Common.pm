@@ -238,6 +238,17 @@ sub parsepage {
     return $text;
 }
 
+sub now { 
+    return strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+}
+
+sub convert_time {
+    my $nixtime = shift || localtime(time);
+    my $format  = shift || "%Y-%m-%d %H:%M:%S"; 
+    
+    return strftime( $format, $nixtime );
+}
+
 
 hook before_template_render => sub {
     my ($values) = @_;
@@ -251,6 +262,9 @@ register transliterate      => \&transliterate;
 register filtrate           => \&filtrate;
 
 register parsepage          => \&parsepage;
+
+register now                => \&now;
+register convert_time       => \&convert_time;
 
 register_plugin;
 
