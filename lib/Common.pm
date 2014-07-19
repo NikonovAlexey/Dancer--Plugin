@@ -35,18 +35,6 @@ my $conf = plugin_setting;
 
 =cut
 
-sub rights {
-    my $input_method = lc(request->{method})     || "";
-    my $current_role = session->{user}->{roles}  || "guest";
-    my ( $s ) = @_;
-    
-    if (FAW::uRoles->check_role($current_role, $input_method, $s) != 0 ) {
-        return undef;
-    };
-    
-    return 1; 
-}
-
 sub template_process {
     my $template    = shift;
     my $params      = shift || { params => "none" };

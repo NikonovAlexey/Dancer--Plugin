@@ -128,16 +128,12 @@ Dancer::Plugin::uRBAC - micro Role Based Access Control
 sub rights {
     my $input_method = lc(request->{method})     || "";
     my $current_role = session->{user}->{roles}  || "guest";
-    #my ( $s ) = @_;
     my $flag = undef;
     
-    map { $flag = 1 
-        if ( FAW::uRoles->check_role(
-            $current_role, 
-            $input_method,
-            $_ )
-                == 0 );
-    } @_;
+    foreach my $rolelist ( @_ ) {
+        $flag = 1 if ( FAW::uRoles->check_role(
+            $current_role, $input_method, $rolelist ) == 0 );
+    };
     
     return $flag; 
 }
