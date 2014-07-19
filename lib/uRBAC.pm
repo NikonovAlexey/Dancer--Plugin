@@ -119,22 +119,27 @@ Dancer::Plugin::uRBAC - micro Role Based Access Control
 
 =head2 rights
 
-Сердце модуля - процедура проверки прав доступа. На входе не передаётся
-никаких параметров, а на выходе возвращается 1, если доступ запрещается или
-undef, если разрешается
+Сердце модуля - процедура проверки прав доступа. На входе нужно указать список ролей,
+а на выходе возвращается 1, если роль текущего пользователя совпадёт с одной из указанных ролей
+или undef, если роль текущего пользователя в списке ролей не будет найдена
 
 =cut
 
 sub rights {
     my $input_method = lc(request->{method})     || "";
     my $current_role = session->{user}->{roles}  || "guest";
-    my ( $s ) = @_;
+    #my ( $s ) = @_;
+    my $flag = undef;
     
-    if (FAW::uRoles->check_role($current_role, $input_method, $s) != 0 ) {
-        return undef;
-    };
+    map { $flag = 1 
+        if ( FAW::uRoles->check_role(
+            $current_role, 
+            $input_method,
+            $_ )
+                == 0 );
+    } @_;
     
-    return 1; 
+    return $flag; 
 }
 
 =head2 say_if_debug
@@ -281,7 +286,7 @@ hook 'before_template_render' => sub {
 На входе следует передать название роли, на которую следует проверить
 текущего пользователя.
 
-    my $currights = rights('admin);
+    my $currights = rights('admin');
 
 Проверка не меняет текущий статус. Для этого следует использовать другие
 процедуры.
